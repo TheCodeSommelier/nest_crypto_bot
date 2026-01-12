@@ -30,13 +30,13 @@ enum UserType {
 model User {
     id String @id @default(uuid())
 
-    firstName String
-    lastName  String
-    email     String   @unique
-    hash      String
-    type      UserType
-
-    trades Trade[]
+    firstName    String
+    lastName     String
+    email        String   @unique
+    hash         String
+    type         UserType
+    ownershipPct Int // Percentage of ownership two decimals e.g. 1234 === 12.34%, 10000 === 100.00%
+    trades       Trade[]
 
     createdAt DateTime @default(now())
     updatedAt DateTime @updatedAt

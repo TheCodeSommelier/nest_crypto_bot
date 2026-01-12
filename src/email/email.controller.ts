@@ -1,11 +1,22 @@
-import { Body, Controller, Get, Param, Post } from '@nestjs/common';
+import {
+  Body,
+  Controller,
+  ForbiddenException,
+  Get,
+  Param,
+  Post,
+} from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
-import { EventEmitter2 } from '@nestjs/event-emitter';
+import {
+  EventEmitter2,
+  EventEmitterReadinessWatcher,
+} from '@nestjs/event-emitter';
 
 import { EmailService } from './email.service';
 
 import type { EmailModel } from 'src/generated/prisma/models';
 import type { PostmarkInbound } from './types/Postmark';
+import { EmailReceivedEvent } from './events/email-received.event';
 
 @Controller('email')
 export class EmailController {
@@ -13,6 +24,7 @@ export class EmailController {
     private readonly configService: ConfigService,
     private readonly emailService: EmailService,
     private readonly eventEmitter: EventEmitter2,
+    private readonly eventEmitterReadinessWatcher: EventEmitterReadinessWatcher,
   ) {}
 
   @Get()
@@ -46,11 +58,13 @@ export class EmailController {
     };
 
     if (!fromValid) {
-      throw new Error('Not a valid sender');
+      throw new ForbiddenException('Not a valid sender');
     }
 
     const email = await this.emailService.createEmail(emailData);
-    this.eventEmitter.emit('Email received');
+
+    await this.eventEmitterReadinessWatcher.waitUntilReady();
+    this.eventEmitter.emit('email.received', new EmailReceivedEvent(email.id));
 
     console.log(email);
   }

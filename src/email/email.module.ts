@@ -3,12 +3,13 @@ import { ConfigModule } from '@nestjs/config';
 
 import { EmailService } from './email.service';
 import { EmailController } from './email.controller';
-import emailConfig from './email.config.ts/email.config';
-import { PrismaService } from 'src/prisma.service';
+import emailConfig from './config/email.config';
+import { PrismaModule } from 'src/prisma.module';
 
 @Module({
-  imports: [ConfigModule.forFeature(emailConfig)],
-  providers: [EmailService, PrismaService],
+  imports: [ConfigModule.forFeature(emailConfig), PrismaModule],
+  exports: [EmailService],
+  providers: [EmailService],
   controllers: [EmailController],
 })
 export class EmailModule {}
