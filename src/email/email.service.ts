@@ -2,7 +2,8 @@ import { Injectable } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import { ServerClient } from 'postmark';
 import { PrismaService } from 'src/prisma.service';
-import {
+
+import type {
   EmailCreateInput,
   EmailModel,
   EmailWhereUniqueInput,
