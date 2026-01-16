@@ -1,31 +1,32 @@
 import { Injectable } from '@nestjs/common';
 import { PrismaService } from 'src/prisma.service';
 
-import type { TradeCreateInput } from 'src/generated/prisma/models';
+import type { TradeSignal } from 'src/generated/prisma/client';
+import {
+  TradeSignalCreateInput,
+  TradeSignalWhereUniqueInput,
+} from 'src/generated/prisma/models';
 
 @Injectable()
 export class TradeService {
   constructor(private readonly prisma: PrismaService) {}
 
-  async trade(id: string) {
-    return await this.prisma.trade.findFirstOrThrow({
-      where: { id },
-    });
+  async tradeSignal(where: TradeSignalWhereUniqueInput): Promise<TradeSignal> {
+    return await this.prisma.tradeSignal.findFirstOrThrow({ where });
   }
 
-  async trades() {
-    return await this.prisma.trade.findMany();
+  async tradeSignals(): Promise<TradeSignal[]> {
+    return await this.prisma.tradeSignal.findMany();
   }
 
-  async createTrade(tradeData: TradeCreateInput) {
-    return await this.prisma.trade.create({ data: tradeData });
+  async createTradeSignal(data: TradeSignalCreateInput) {
+    return await this.prisma.tradeSignal.create({ data });
   }
 
-  async createTrades(tradesData: TradeCreateInput[]) {
-    return await this.prisma.$transaction(
-      tradesData.map((tradeData) =>
-        this.prisma.trade.create({ data: tradeData }),
-      ),
-    );
+  async removeTradeSignal(where: TradeSignalWhereUniqueInput) {
+    const trade = await this.tradeSignal(where);
+    await this.prisma.tradeSignal.delete({ where });
+
+    return trade;
   }
 }

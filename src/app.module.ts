@@ -7,6 +7,7 @@ import { EmailModule } from './email/email.module';
 import { ConfigModule } from '@nestjs/config';
 import { TradeModule } from './trade/trade.module';
 import { UserModule } from './user/user.module';
+import { TradeDataParserModule } from './trade-data-parser/trade-data-parser.module';
 import appConfig from './config/app.config';
 
 @Module({
@@ -18,6 +19,7 @@ import appConfig from './config/app.config';
     }),
     TradeModule,
     UserModule,
+    TradeDataParserModule,
   ],
   controllers: [AppController],
   providers: [AppService],

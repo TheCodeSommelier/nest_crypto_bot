@@ -1,68 +1,42 @@
-import { Body, Controller, Get, Param, Post } from '@nestjs/common';
-import { OnEvent } from '@nestjs/event-emitter';
-import { EmailService } from 'src/email/email.service';
-import { EmailReceivedEvent } from 'src/email/events/email-received.event';
+import { Controller, Delete, Get, Param } from '@nestjs/common';
+
 import { TradeService } from './trade.service';
-import { CreateTradeDto } from './dto/create-trade.dto';
-import { CreateTradesDto } from './dto/create-trades.dto';
-import { UserService } from 'src/user/user.service';
+import { OnEvent } from '@nestjs/event-emitter';
+import { TradeDataParsedEvent } from 'src/trade-data-parser/events/trade-data-parsed.event';
+import { TradeExecutionFuturesService } from './trade-execution-futures/trade-execution-futures.service';
+import { TradeExecutionSpotService } from './trade-execution-spot/trade-execution-spot.service';
 
 @Controller('trade')
 export class TradeController {
   constructor(
     private readonly tradeService: TradeService,
-    private readonly emailService: EmailService,
-    private readonly userService: UserService,
+    private readonly tradeExecutionFuturesService: TradeExecutionFuturesService,
+    private readonly tradeExecutionSpotService: TradeExecutionSpotService,
   ) {}
 
-  @Get('/:id')
-  async findOne(@Param('id') id: string) {
-    return await this.tradeService.trade(id);
-  }
-
   @Get()
-  async findAll() {
-    return await this.tradeService.trades();
+  findAll() {
+    return this.tradeService.tradeSignals();
+  }
+  @Delete(':id')
+  remove(@Param('id') id: string) {
+    return this.tradeService.removeTradeSignal({ id });
   }
 
-  @Post()
-  async createTrade(@Body() tradeRawData: CreateTradeDto) {
-    const { emailId, userId } = tradeRawData;
+  @OnEvent('tradeSignal.parsed')
+  async processTrade(payload: TradeDataParsedEvent) {
+    const tradeSignalId = payload.tradeSignalId;
 
-    const tradeData = {
-      ...tradeRawData,
-      email: { connect: { id: emailId } },
-      user: { connect: { id: userId } },
-    };
-
-    const trade = await this.tradeService.createTrade(tradeData);
-    return trade;
-  }
-
-  @Post('/tradesForAll')
-  async createTradeForAll(@Body() tradeRawData: CreateTradesDto) {
-    const { emailId } = tradeRawData;
-
-    const users = await this.userService.users();
-    const userIds = users.map((user) => user.id);
-
-    const tradesData = userIds.map((userId) => ({
-      ...tradeRawData,
-      email: { connect: { id: emailId } },
-      user: { connect: { id: userId } },
-    }));
-
-    return await this.tradeService.createTrades(tradesData);
-  }
-
-  @OnEvent('email.received')
-  async parseTradeData(payload: EmailReceivedEvent) {
-    const { emailId } = payload;
-
-    const { textBody, htmlBody } = await this.emailService.email({
-      id: emailId,
+    const tradeSignal = await this.tradeService.tradeSignal({
+      id: tradeSignalId,
     });
 
-    console.log(textBody, htmlBody);
+    if (tradeSignal.market === 'FUTURES') {
+      await this.tradeExecutionFuturesService.executeTradeCall(tradeSignal);
+    }
+
+    if (tradeSignal.market === 'SPOT') {
+      await this.tradeExecutionSpotService.executeTradeCall(tradeSignal);
+    }
   }
 }

@@ -14,6 +14,11 @@ datasource db {
     provider = "postgresql"
 }
 
+enum UserType {
+    ADMIN
+    TRADER
+}
+
 enum TradeAction {
     BUY
     SELL
@@ -22,24 +27,22 @@ enum TradeAction {
     COVER
 }
 
-enum UserType {
-    ADMIN
-    TRADER
+enum TradeMarket {
+    FUTURES
+    SPOT
 }
 
-model User {
-    id String @id @default(uuid())
+enum TradeStatus {
+    PARSED
+    INVALID
+    DISPATCHED
+}
 
-    firstName    String
-    lastName     String
-    email        String   @unique
-    hash         String
-    type         UserType
-    ownershipPct Int // Percentage of ownership two decimals e.g. 1234 === 12.34%, 10000 === 100.00%
-    trades       Trade[]
-
-    createdAt DateTime @default(now())
-    updatedAt DateTime @updatedAt
+enum ExecutionStatus {
+    PENDING
+    SKIPPED
+    PLACED
+    FAILED
 }
 
 model Email {
@@ -51,28 +54,65 @@ model Email {
     htmlBody  String?
     messageId String  @unique
 
-    trades Trade[]
+    tradeSignal TradeSignal? // if 1 email -> 1 trade signal
 
     createdAt DateTime @default(now())
     updatedAt DateTime @updatedAt
 }
 
-model Trade {
+model TradeSignal {
     id String @id @default(uuid())
 
-    symbol String
-    action TradeAction
+    status TradeStatus @default(PARSED)
 
-    entry    Float
-    stopLoss Float
-    target   Float
-    executed Boolean @default(false)
+    symbol String
+    base   String
+    quote  String
+    action TradeAction
+    market TradeMarket
+
+    average  Decimal?
+    entry    Decimal?
+    stopLoss Decimal?
+    target   Decimal?
+
+    entryPortfolioPct   Int?
+    averagePortfolioPct Int?
 
     email   Email  @relation(fields: [emailId], references: [id], onDelete: Cascade)
-    emailId String
+    emailId String @unique
 
-    user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
-    userId String
+    tradeSignalExchangeExtension TradeSignalExchangeExtension?
+
+    createdAt DateTime @default(now())
+    updatedAt DateTime @updatedAt
+}
+
+model TradeSignalExchangeExtension {
+    id String @id @default(uuid())
+
+    order String
+    close String?
+    txid  String
+
+    tradeSignal   TradeSignal @relation(fields: [tradeSignalId], references: [id])
+    tradeSignalId String      @unique
+
+    createdAt DateTime @default(now())
+    updatedAt DateTime @updatedAt
+}
+
+model User {
+    id String @id @default(uuid())
+
+    firstName    String
+    lastName     String
+    email        String   @unique
+    hash         String
+    type         UserType
+    ownershipPct Int // 1234 === 12.34%
+
+    isActive Boolean @default(true)
 
     createdAt DateTime @default(now())
     updatedAt DateTime @updatedAt
