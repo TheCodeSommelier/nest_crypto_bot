@@ -9,7 +9,9 @@ describe('TradeExecutionFuturesService', () => {
       providers: [TradeExecutionFuturesService],
     }).compile();
 
-    service = module.get<TradeExecutionFuturesService>(TradeExecutionFuturesService);
+    service = module.get<TradeExecutionFuturesService>(
+      TradeExecutionFuturesService,
+    );
   });
 
   it('should be defined', () => {

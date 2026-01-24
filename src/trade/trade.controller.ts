@@ -1,13 +1,15 @@
-import { Controller, Delete, Get, Param } from '@nestjs/common';
+import { Controller, Delete, Get, Logger, Param } from '@nestjs/common';
 
 import { TradeService } from './trade.service';
 import { OnEvent } from '@nestjs/event-emitter';
 import { TradeDataParsedEvent } from 'src/trade-data-parser/events/trade-data-parsed.event';
-import { TradeExecutionFuturesService } from './trade-execution-futures/trade-execution-futures.service';
-import { TradeExecutionSpotService } from './trade-execution-spot/trade-execution-spot.service';
+import { TradeExecutionFuturesService } from './trade-execution-futures.service';
+import { TradeExecutionSpotService } from './trade-execution-spot.service';
 
 @Controller('trade')
 export class TradeController {
+  private readonly logger = new Logger(TradeController.name);
+
   constructor(
     private readonly tradeService: TradeService,
     private readonly tradeExecutionFuturesService: TradeExecutionFuturesService,
@@ -36,6 +38,8 @@ export class TradeController {
     }
 
     if (tradeSignal.market === 'SPOT') {
+      const blc = await this.tradeExecutionSpotService.getAccountBalance();
+      this.logger.debug('Balance', blc);
       await this.tradeExecutionSpotService.executeTradeCall(tradeSignal);
     }
   }

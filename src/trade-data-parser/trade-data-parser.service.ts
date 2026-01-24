@@ -51,17 +51,15 @@ export class TradeDataParserService {
       throw new Error(`Unrecognized subject format: "${normalizedSubject}"`);
     }
 
-    const actionRaw = m[1]?.toUpperCase();
+    const action = m[1]?.toUpperCase() as TradeAction;
     const base = m[2].toUpperCase();
     const quote = m[3].toUpperCase();
 
     const symbol = `${base}/${quote}` as const;
 
-    if (!actionRaw || !(actionRaw in TRADE_MARKET)) {
-      throw new Error(`Unrecognized action: "${actionRaw}"`);
+    if (!action || !(action in TRADE_MARKET)) {
+      throw new Error(`Unrecognized action: "${action}"`);
     }
-
-    const action = actionRaw as TradeAction;
     const market = TRADE_MARKET[action];
 
     return { action, market, symbol, base, quote };
