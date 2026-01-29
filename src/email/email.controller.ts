@@ -1,12 +1,4 @@
-import {
-  Body,
-  Controller,
-  ForbiddenException,
-  Get,
-  Param,
-  Post,
-} from '@nestjs/common';
-import { ConfigService } from '@nestjs/config';
+import { Body, Controller, Get, Logger, Param, Post } from '@nestjs/common';
 import {
   EventEmitter2,
   EventEmitterReadinessWatcher,
@@ -20,8 +12,9 @@ import { EmailReceivedEvent } from './events/email-received.event';
 
 @Controller('email')
 export class EmailController {
+  private readonly logger = new Logger(EmailController.name);
+
   constructor(
-    private readonly configService: ConfigService,
     private readonly emailService: EmailService,
     private readonly eventEmitter: EventEmitter2,
     private readonly eventEmitterReadinessWatcher: EventEmitterReadinessWatcher,
@@ -42,13 +35,8 @@ export class EmailController {
     return this.emailService.sendSimpleMessage();
   }
 
-  // Unnecessary to return the email this is postmark webhook
   @Post()
   async receive(@Body() emailBody: PostmarkInbound) {
-    const fromValid =
-      emailBody.From === this.configService.get('MY_MAIL') ||
-      emailBody.From === this.configService.get('TRADER_MAIL');
-
     const emailData = {
       from: emailBody.From,
       subject: emailBody.Subject,
@@ -57,15 +45,11 @@ export class EmailController {
       messageId: emailBody.MessageID,
     };
 
-    if (!fromValid) {
-      throw new ForbiddenException('Not a valid sender');
-    }
-
     const email = await this.emailService.createEmail(emailData);
 
     await this.eventEmitterReadinessWatcher.waitUntilReady();
     this.eventEmitter.emit('email.received', new EmailReceivedEvent(email.id));
 
-    console.log(email);
+    this.logger.debug(email);
   }
 }

@@ -111,6 +111,7 @@ model User {
     hash         String
     type         UserType
     ownershipPct Int // 1234 === 12.34%
+    arn          String   @unique
 
     isActive Boolean @default(true)
 
