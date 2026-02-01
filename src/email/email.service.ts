@@ -13,7 +13,7 @@ import type {
 export class EmailService {
   constructor(
     private readonly configService: ConfigService,
-    private prisma: PrismaService,
+    private readonly prisma: PrismaService,
   ) {}
 
   async sendSimpleMessage() {
