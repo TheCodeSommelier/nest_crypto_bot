@@ -24,5 +24,6 @@
     "paths": {
       "src/*": ["src/*"]
     }
-  }
+  },
+  "include": ["src/**/*", "test/**/*", "sst-env.d.ts"]
 }

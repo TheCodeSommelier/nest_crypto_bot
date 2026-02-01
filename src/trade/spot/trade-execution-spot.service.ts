@@ -4,14 +4,14 @@ import { createHash } from 'node:crypto';
 import { firstValueFrom } from 'rxjs';
 
 import { TradeSignalModel } from 'src/generated/prisma/models';
-import { getNonce, mapToURLValues, sign } from './utils/kraken';
+import { getNonce, mapToURLValues, sign } from '../utils/kraken';
 import {
   SPOT_PRIVATE_ENDPOINT,
   SPOT_PRIVATE_URL,
   SPOT_PUBLIC_URL,
-} from './consts';
-import { AccountBalanceResponse } from './types/kraken/spot/Account';
-import { AssetPairInfoResponse } from './types/kraken/spot/Market';
+} from '../consts';
+import { AccountBalanceResponse } from '../types/kraken/spot/Account';
+import { AssetPairInfoResponse } from '../types/kraken/spot/Market';
 
 @Injectable()
 export class TradeExecutionSpotService {

@@ -4,9 +4,9 @@ import { createHash } from 'node:crypto';
 import { firstValueFrom } from 'rxjs';
 
 import { TradeSignalModel } from 'src/generated/prisma/models';
-import { getNonce, sign } from './utils/kraken';
-import { type TickersInfoResponse, TickerTag } from './types/kraken/Futures';
-import { FUTURES_BASE_URL } from './consts';
+import { getNonce, sign } from '../utils/kraken';
+import { type TickersInfoResponse, TickerTag } from '../types/kraken/Futures';
+import { FUTURES_BASE_URL } from '../consts';
 
 @Injectable()
 export class TradeExecutionFuturesService {

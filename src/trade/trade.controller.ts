@@ -3,8 +3,8 @@ import { Controller, Delete, Get, Logger, Param } from '@nestjs/common';
 import { TradeService } from './trade.service';
 import { OnEvent } from '@nestjs/event-emitter';
 import { TradeDataParsedEvent } from 'src/trade-data-parser/events/trade-data-parsed.event';
-import { TradeExecutionFuturesService } from './trade-execution-futures.service';
-import { TradeExecutionSpotService } from './trade-execution-spot.service';
+import { TradeExecutionFuturesService } from './futures/trade-execution-futures.service';
+import { TradeExecutionSpotService } from './spot/trade-execution-spot.service';
 
 @Controller('trade')
 export class TradeController {

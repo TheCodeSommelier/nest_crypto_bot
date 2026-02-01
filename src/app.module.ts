@@ -10,17 +10,17 @@ import { UserModule } from './user/user.module';
 import { TradeDataParserModule } from './trade-data-parser/trade-data-parser.module';
 import appConfig from './config/app.config';
 import { PostmarkAuthMiddleware } from './webhooks/postmark-auth.middleware';
+import { SecretsModule } from './secrets/secrets.module';
 
 @Module({
   imports: [
     EmailModule,
     ConfigModule.forRoot({ load: [appConfig] }),
-    EventEmitterModule.forRoot({
-      verboseMemoryLeak: true,
-    }),
+    EventEmitterModule.forRoot({ verboseMemoryLeak: true }),
     TradeModule,
     UserModule,
     TradeDataParserModule,
+    SecretsModule,
   ],
   controllers: [AppController],
   providers: [AppService],
