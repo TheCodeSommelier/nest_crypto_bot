@@ -7,12 +7,16 @@ import { TradeSignalModel } from 'src/generated/prisma/models';
 import { getNonce, sign } from '../utils/kraken';
 import { type TickersInfoResponse, TickerTag } from '../types/kraken/Futures';
 import { FUTURES_BASE_URL } from '../consts';
+import { SecretsService } from 'src/secrets/secrets.service';
 
 @Injectable()
 export class TradeExecutionFuturesService {
   private readonly logger = new Logger(TradeExecutionFuturesService.name);
 
-  constructor(private readonly http: HttpService) {}
+  constructor(
+    private readonly http: HttpService,
+    private readonly secretsService: SecretsService,
+  ) {}
 
   async executeTradeCall(tradeSignal: TradeSignalModel) {
     this.logger.debug('FUTURES', tradeSignal);
@@ -23,6 +27,9 @@ export class TradeExecutionFuturesService {
 
     const tickers = await this.getPerpetualTickers();
     this.logger.debug(tickers);
+
+    const secret = await this.secretsService.findSecret('nest-bot/dev/test');
+    this.logger.debug(secret);
   }
 
   private async getPerpetualTickers() {
