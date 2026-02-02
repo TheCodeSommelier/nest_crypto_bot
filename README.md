@@ -1,98 +1,106 @@
-<p align="center">
-  <a href="http://nestjs.com/" target="blank"><img src="https://nestjs.com/img/logo-small.svg" width="120" alt="Nest Logo" /></a>
-</p>
+# Nest Bot
 
-[circleci-image]: https://img.shields.io/circleci/build/github/nestjs/nest/master?token=abc123def456
-[circleci-url]: https://circleci.com/gh/nestjs/nest
+Event-driven NestJS service for turning unstructured trade alerts into normalized trade signals, tracking their lifecycle, and preparing them for execution.
 
-  <p align="center">A progressive <a href="http://nodejs.org" target="_blank">Node.js</a> framework for building efficient and scalable server-side applications.</p>
-    <p align="center">
-<a href="https://www.npmjs.com/~nestjscore" target="_blank"><img src="https://img.shields.io/npm/v/@nestjs/core.svg" alt="NPM Version" /></a>
-<a href="https://www.npmjs.com/~nestjscore" target="_blank"><img src="https://img.shields.io/npm/l/@nestjs/core.svg" alt="Package License" /></a>
-<a href="https://www.npmjs.com/~nestjscore" target="_blank"><img src="https://img.shields.io/npm/dm/@nestjs/common.svg" alt="NPM Downloads" /></a>
-<a href="https://circleci.com/gh/nestjs/nest" target="_blank"><img src="https://img.shields.io/circleci/build/github/nestjs/nest/master" alt="CircleCI" /></a>
-<a href="https://discord.gg/G7Qnnhy" target="_blank"><img src="https://img.shields.io/badge/discord-online-brightgreen.svg" alt="Discord"/></a>
-<a href="https://opencollective.com/nest#backer" target="_blank"><img src="https://opencollective.com/nest/backers/badge.svg" alt="Backers on Open Collective" /></a>
-<a href="https://opencollective.com/nest#sponsor" target="_blank"><img src="https://opencollective.com/nest/sponsors/badge.svg" alt="Sponsors on Open Collective" /></a>
-  <a href="https://paypal.me/kamilmysliwiec" target="_blank"><img src="https://img.shields.io/badge/Donate-PayPal-ff3f59.svg" alt="Donate us"/></a>
-    <a href="https://opencollective.com/nest#sponsor"  target="_blank"><img src="https://img.shields.io/badge/Support%20us-Open%20Collective-41B883.svg" alt="Support us"></a>
-  <a href="https://twitter.com/nestframework" target="_blank"><img src="https://img.shields.io/twitter/follow/nestframework.svg?style=social&label=Follow" alt="Follow us on Twitter"></a>
-</p>
-  <!--[![Backers on Open Collective](https://opencollective.com/nest/backers/badge.svg)](https://opencollective.com/nest#backer)
-  [![Sponsors on Open Collective](https://opencollective.com/nest/sponsors/badge.svg)](https://opencollective.com/nest#sponsor)-->
+## Wanted Result
 
-## Description
+The target outcome of this project is:
 
-[Nest](https://github.com/nestjs/nest) framework TypeScript starter repository.
+- reliably parse incoming trade alerts into structured data (`action`, `symbol`, `entry`, `stop`, `target`, sizing, author),
+- track the full trade lifecycle (open -> add -> close),
+- keep execution metadata attached to each lifecycle step,
+- make the pipeline testable and deterministic so behavior is predictable in production.
 
-## Project setup
+## How It Works
 
-```bash
-$ yarn install
-```
+At a high level:
 
-## Compile and run the project
+1. Ingestion endpoint receives a raw signal payload.
+2. Parser normalizes subject/body into structured trade fields.
+3. A `TradeSignal` record is created in Postgres via Prisma.
+4. Follow-up lifecycle events can be stored as extensions (for add/close actions).
+5. Execution services can place orders and persist execution state.
 
-```bash
-# development
-$ yarn run start
+## Tech Stack
 
-# watch mode
-$ yarn run start:dev
+- NestJS (modular app + event emitter)
+- Prisma + PostgreSQL
+- TypeScript
+- SST + AWS Lambda/API Gateway deployment path
 
-# production mode
-$ yarn run start:prod
-```
+## Project Structure
 
-## Run tests
+- `src/trade-data-parser` - parsing logic, regex constants, parser tests
+- `src/trade` - trade signal services and execution paths
+- `src/secrets` - runtime secret retrieval
+- `src/user` - user/domain ownership data
+- `prisma/schema.prisma` - data model and relations
+- `sst.config.ts` - serverless infrastructure config
+- `src/lambda.ts` - Lambda handler bootstrap
+
+## Getting Started
+
+Install dependencies:
 
 ```bash
-# unit tests
-$ yarn run test
-
-# e2e tests
-$ yarn run test:e2e
-
-# test coverage
-$ yarn run test:cov
+yarn install
 ```
 
-## Deployment
+Create environment variables (for example in `.env`):
 
-When you're ready to deploy your NestJS application to production, there are some key steps you can take to ensure it runs as efficiently as possible. Check out the [deployment documentation](https://docs.nestjs.com/deployment) for more information.
+- `DATABASE_URL`
+- `DIRECT_URL` (if used in your db setup)
 
-If you are looking for a cloud-based platform to deploy your NestJS application, check out [Mau](https://mau.nestjs.com), our official platform for deploying NestJS applications on AWS. Mau makes deployment straightforward and fast, requiring just a few simple steps:
+Generate Prisma client:
 
 ```bash
-$ yarn install -g @nestjs/mau
-$ mau deploy
+npx prisma generate
 ```
 
-With Mau, you can deploy your application in just a few clicks, allowing you to focus on building features rather than managing infrastructure.
+Run migrations (if needed):
 
-## Resources
+```bash
+npx prisma migrate dev
+```
 
-Check out a few resources that may come in handy when working with NestJS:
+Start locally:
 
-- Visit the [NestJS Documentation](https://docs.nestjs.com) to learn more about the framework.
-- For questions and support, please visit our [Discord channel](https://discord.gg/G7Qnnhy).
-- To dive deeper and get more hands-on experience, check out our official video [courses](https://courses.nestjs.com/).
-- Deploy your application to AWS with the help of [NestJS Mau](https://mau.nestjs.com) in just a few clicks.
-- Visualize your application graph and interact with the NestJS application in real-time using [NestJS Devtools](https://devtools.nestjs.com).
-- Need help with your project (part-time to full-time)? Check out our official [enterprise support](https://enterprise.nestjs.com).
-- To stay in the loop and get updates, follow us on [X](https://x.com/nestframework) and [LinkedIn](https://linkedin.com/company/nestjs).
-- Looking for a job, or have a job to offer? Check out our official [Jobs board](https://jobs.nestjs.com).
+```bash
+yarn start:dev
+```
 
-## Support
+## Tests
 
-Nest is an MIT-licensed open source project. It can grow thanks to the sponsors and support by the amazing backers. If you'd like to join them, please [read more here](https://docs.nestjs.com/support).
+Run all tests:
 
-## Stay in touch
+```bash
+yarn test
+```
 
-- Author - [Kamil Myśliwiec](https://twitter.com/kammysliwiec)
-- Website - [https://nestjs.com](https://nestjs.com/)
-- Twitter - [@nestframework](https://twitter.com/nestframework)
+Run parser tests only:
 
-## License
+```bash
+yarn test trade-data-parser.service.spec.ts
+```
 
-Nest is [MIT licensed](https://github.com/nestjs/nest/blob/master/LICENSE).
+Coverage:
+
+```bash
+yarn test:cov
+```
+
+## Build
+
+```bash
+yarn build
+```
+
+## Deploy (SST)
+
+Use SST for serverless deployment workflows:
+
+```bash
+npx sst dev
+npx sst deploy
+```
+
