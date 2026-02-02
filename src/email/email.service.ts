@@ -41,10 +41,6 @@ export class EmailService {
   }
 
   async createEmail(data: EmailCreateInput): Promise<EmailModel> {
-    const email = await this.prisma.email.create({
-      data,
-    });
-
-    return email;
+    return await this.prisma.email.create({ data });
   }
 }

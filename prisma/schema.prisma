@@ -110,7 +110,7 @@ model User {
     email        String   @unique
     hash         String
     type         UserType
-    ownershipPct Int // 1234 === 12.34%
+    ownershipPct Int      @default(0) // 1234 === 12.34%
     arn          String   @unique
 
     isActive Boolean @default(true)
